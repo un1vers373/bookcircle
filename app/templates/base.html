@@ -9,7 +9,7 @@
 <body>
 <div class="progress" aria-hidden="true"></div>
 <header class="site-header">
-  <div class="wrap bar">
+  <div class="wrap bar{% if not user %} bar-center{% endif %}">
     <a class="brand" href="/books">BookCircle</a>
     {% if user %}
     <nav class="nav" aria-label="Основное меню">

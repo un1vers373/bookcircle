@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field with context %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1>Вход</h1>
+  <form method="post" action="/login" class="card form" novalidate>
+    <input type="hidden" name="next" value="{{ next }}">
+    {{ field("email", "Email", values, errors, "email", true) }}
+    {{ field("password", "Пароль", values, errors, "password", true) }}
+    <button class="btn primary" type="submit">Войти</button>
+  </form>
+  <p class="muted">Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+</section>
+{% endblock %}

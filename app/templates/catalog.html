@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pager, cover, rating, empty with context %}
+{% block title %}Каталог{% endblock %}
+{% block content %}
+<h1>Каталог книг</h1>
+<form method="get" action="/books" class="filters card">
+  <div class="field grow">
+    <label for="q">Поиск по названию или автору</label>
+    <input id="q" name="q" type="search" value="{{ q }}" placeholder="Например: Булгаков">
+  </div>
+  <div class="field">
+    <label for="genre">Жанр</label>
+    <select id="genre" name="genre">
+      <option value="">Все жанры</option>
+      {% for g in genres %}<option value="{{ g }}" {% if g == genre %}selected{% endif %}>{{ g }}</option>{% endfor %}
+    </select>
+  </div>
+  <label class="check"><input type="checkbox" name="available" value="1" {% if only_available %}checked{% endif %}> Только доступные</label>
+  <button class="btn primary" type="submit">Найти</button>
+</form>
+
+<p class="muted">Найдено: {{ pg.total }}</p>
+{% if pg.items %}
+<ul class="grid">
+  {% for b in pg.items %}
+  <li class="card book-card">
+    {{ cover(b.cover_url, b.title, b.id) }}
+    <div class="body">
+      <h2><a href="/books/{{ b.id }}">{{ b.title }}</a></h2>
+      <p class="muted">{{ b.author }} · {{ b.genre }}</p>
+      <p>{{ rating(b.avg_rating, b.reviews_count) }}</p>
+      <p>
+        {% if b.available_count %}<span class="tag ok">Доступно: {{ b.available_count }} из {{ b.copies_count }}</span>
+        {% elif b.copies_count %}<span class="tag warn">Все экземпляры заняты</span>
+        {% else %}<span class="tag">Экземпляров нет</span>{% endif %}
+        {% if b.read_month %}<span class="tag">Прочитали в этом месяце: {{ b.read_month }}</span>{% endif %}
+      </p>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{{ pager(pg) }}
+{% else %}
+{{ empty("Ничего не найдено", "Попробуйте изменить запрос или сбросить фильтры.") }}
+{% endif %}
+{% endblock %}

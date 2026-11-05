@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, select, pager, cover, empty with context %}
+{% block title %}Моя полка{% endblock %}
+{% block content %}
+<h1>Моя полка</h1>
+
+<form method="post" action="/copies" class="card form" novalidate>
+  <h2>Добавить экземпляр</h2>
+  {{ select("book_id", "Книга из каталога", book_options, values.get("book_id"), errors, "Выберите книгу") }}
+  <p class="muted small">Нет нужной книги? Попросите модератора добавить её в каталог.</p>
+  {{ select("condition", "Состояние", CONDITIONS.items()|list, values.get("condition"), errors, "Выберите состояние") }}
+  {{ field("pickup_place", "Место передачи", values, errors, "text", true, "Например: Корпус А, вахта") }}
+  <button class="btn primary" type="submit">Добавить</button>
+</form>
+
+<h2>Мои экземпляры</h2>
+{% if pg.items %}
+<ul class="list">
+  {% for c in pg.items %}
+  <li class="card row">
+    {{ cover(c.cover_url, c.title, c.book_id, "small") }}
+    <div class="grow">
+      <strong><a href="/books/{{ c.book_id }}">{{ c.title }}</a></strong>
+      <span class="muted"> · {{ c.author }}</span>
+      <p class="muted">{{ CONDITIONS[c.condition] }} · {{ c.pickup_place }}</p>
+      <p>
+        {% if c.state == 'free' %}<span class="tag ok">Доступен</span>
+        {% elif c.state == 'reserved' %}<span class="tag warn">Принят запрос ({{ c.borrower_name }})</span>
+        {% elif c.state == 'lent' %}<span class="tag warn">У {{ c.borrower_name }} до {{ c.due_date|date_ru }}</span>
+          {% if c.overdue %}<span class="tag bad">Просрочено</span>{% endif %}
+        {% else %}<span class="tag">Скрыт</span>{% endif %}
+        {% if c.pending_count %}<a class="tag" href="/loans">Новых запросов: {{ c.pending_count }}</a>{% endif %}
+      </p>
+    </div>
+    <div class="actions">
+      <a class="btn small" href="/copies/{{ c.id }}/edit">Изменить</a>
+      {% if c.is_active %}
+      <form method="post" action="/copies/{{ c.id }}/visibility"><input type="hidden" name="show" value="0">
+        <button class="btn small" type="submit" {% if c.state in ('lent', 'reserved') %}disabled title="Нельзя скрыть, пока книга принята или передана"{% endif %}>Скрыть</button></form>
+      {% else %}
+      <form method="post" action="/copies/{{ c.id }}/visibility"><input type="hidden" name="show" value="1">
+        <button class="btn small" type="submit">Показать</button></form>
+      {% endif %}
+      <form method="post" action="/copies/{{ c.id }}/delete" data-confirm="Удалить этот экземпляр?">
+        <button class="btn small danger" type="submit" {% if c.loans_total %}disabled title="Есть история обменов — можно только скрыть"{% endif %}>Удалить</button></form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{{ pager(pg) }}
+{% else %}
+{{ empty("Полка пуста", "Добавьте первую книгу с помощью формы выше.") }}
+{% endif %}
+{% endblock %}

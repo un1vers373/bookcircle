@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field with context %}
+{% block title %}Профиль{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1>Профиль</h1>
+  <p class="muted">{{ user.email }} · роль: {{ ROLES[user.role] }}</p>
+  <form method="post" action="/profile" class="card form" novalidate>
+    {{ field("display_name", "Имя", values, errors, "text", true) }}
+    <h2>Смена пароля</h2>
+    <p class="muted">Заполните, только если хотите сменить пароль.</p>
+    {{ field("current_password", "Текущий пароль", values, errors, "password") }}
+    {{ field("new_password", "Новый пароль", values, errors, "password", false, "Не короче 8 символов") }}
+    <button class="btn primary" type="submit">Сохранить</button>
+  </form>
+</section>
+{% endblock %}

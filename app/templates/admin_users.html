@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pager, empty with context %}
+{% block title %}Роли{% endblock %}
+{% block content %}
+<h1>Пользователи и роли</h1>
+<p class="muted">Служебные роли назначает только администратор.</p>
+<ul class="list">
+  {% for u in pg.items %}
+  <li class="card row">
+    <div class="grow">
+      <strong>{{ u.display_name }}</strong> <span class="muted">· {{ u.email }}</span>
+      <p><span class="tag">{{ ROLES[u.role] }}</span></p>
+    </div>
+    {% if u.id != user.id %}
+    <form method="post" action="/admin/users/{{ u.id }}/role" class="inline-form">
+      <div class="field">
+        <label for="r-{{ u.id }}">Роль</label>
+        <select id="r-{{ u.id }}" name="role">
+          {% for key, label in ROLES.items() %}<option value="{{ key }}" {% if key == u.role %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn small" type="submit">Назначить</button>
+    </form>
+    {% else %}<span class="muted">Это вы</span>{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{{ pager(pg) }}
+{% endblock %}

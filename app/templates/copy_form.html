@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, select with context %}
+{% block title %}Изменить экземпляр{% endblock %}
+{% block content %}
+<section class="narrow">
+  <p><a href="/shelf">← Моя полка</a></p>
+  <h1>Изменить экземпляр</h1>
+  <p class="muted">{{ copy.title }} · {{ copy.author }}</p>
+  <form method="post" action="/copies/{{ copy.id }}" class="card form" novalidate>
+    {{ select("condition", "Состояние", CONDITIONS.items()|list, values.get("condition"), errors, "Выберите состояние") }}
+    {{ field("pickup_place", "Место передачи", values, errors, "text", true) }}
+    <button class="btn primary" type="submit">Сохранить</button>
+  </form>
+</section>
+{% endblock %}

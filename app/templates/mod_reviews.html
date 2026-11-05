@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pager, empty with context %}
+{% block title %}Модерация: рецензии{% endblock %}
+{% block content %}
+<h1>Модерация</h1>
+{% include "_mod_tabs.html" %}
+<div class="tabs sub">
+  <a href="/moderation/reviews" {% if not only_hidden %}class="active"{% endif %}>Все</a>
+  <a href="/moderation/reviews?f=hidden" {% if only_hidden %}class="active"{% endif %}>Скрытые</a>
+</div>
+{% if pg.items %}
+<ul class="list">
+  {% for r in pg.items %}
+  <li class="card row">
+    <div class="grow">
+      <p><strong><a href="/books/{{ r.book_id }}">{{ r.title }}</a></strong>
+         <span class="muted">· {{ r.author_name }}</span> <span class="rating">★ {{ r.score }}</span>
+         {% if r.is_hidden %}<span class="tag bad">Скрыт</span>{% endif %}</p>
+      <p>{{ r.text }}</p>
+    </div>
+    <div class="actions">
+      {% if r.is_hidden %}
+      <form method="post" action="/moderation/reviews/{{ r.id }}/show"><button class="btn small" type="submit">Показать</button></form>
+      {% else %}
+      <form method="post" action="/moderation/reviews/{{ r.id }}/hide" data-confirm="Скрыть эту рецензию? Она перестанет учитываться в рейтинге."><button class="btn small danger" type="submit">Скрыть</button></form>
+      {% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{{ pager(pg) }}
+{% else %}
+{{ empty("Рецензий нет") }}
+{% endif %}
+{% endblock %}

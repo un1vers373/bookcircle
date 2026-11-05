@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pager, cover, empty with context %}
+{% block title %}Моё чтение{% endblock %}
+{% block content %}
+<h1>Моё чтение</h1>
+<ul class="stats">
+  <li class="card"><strong>{{ stats.counts.want }}</strong><span class="muted">хочу прочитать</span></li>
+  <li class="card"><strong>{{ stats.counts.reading }}</strong><span class="muted">читаю</span></li>
+  <li class="card"><strong>{{ stats.counts.done }}</strong><span class="muted">прочитано всего</span></li>
+  <li class="card"><strong>{{ stats.month }}</strong><span class="muted">за этот месяц</span></li>
+  <li class="card"><strong>{{ stats.year }}</strong><span class="muted">за этот год</span></li>
+</ul>
+
+<div class="tabs">
+  <a href="/reading" {% if not status %}class="active"{% endif %}>Все</a>
+  {% for key, label in READING_STATUS.items() %}
+  <a href="/reading?status={{ key }}" {% if status == key %}class="active"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if pg.items %}
+<ul class="list">
+  {% for e in pg.items %}
+  <li class="card row">
+    {{ cover(e.cover_url, e.title, e.book_id, "small") }}
+    <div class="grow">
+      <strong><a href="/books/{{ e.book_id }}">{{ e.title }}</a></strong>
+      <span class="muted"> · {{ e.author }}</span>
+      <p><span class="tag">{{ READING_STATUS[e.status] }}</span>
+         {% if e.finished_at %}<span class="muted small">завершено {{ e.finished_at|date_ru }}</span>{% endif %}</p>
+    </div>
+    <form method="post" action="/reading/{{ e.book_id }}" class="inline-form">
+      <input type="hidden" name="next" value="/reading{% if status %}?status={{ status }}{% endif %}">
+      <div class="field">
+        <label for="s-{{ e.id }}">Статус</label>
+        <select id="s-{{ e.id }}" name="status">
+          {% for key, label in READING_STATUS.items() %}<option value="{{ key }}" {% if key == e.status %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn small" type="submit">Изменить</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{{ pager(pg) }}
+{% else %}
+{{ empty("Список пуст", "Откройте книгу в каталоге и выберите статус чтения.") }}
+{% endif %}
+{% endblock %}

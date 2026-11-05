@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ code }}{% endblock %}
+{% block content %}
+<section class="narrow center">
+  <p class="big-code">{{ code }}</p>
+  <h1>{{ title }}</h1>
+  <p>{{ message }}</p>
+  <p><a class="btn" href="{% if user %}/books{% else %}/login{% endif %}">{% if user %}В каталог{% else %}Ко входу{% endif %}</a>
+     <a class="btn ghost" href="javascript:history.back()">Назад</a></p>
+</section>
+{% endblock %}

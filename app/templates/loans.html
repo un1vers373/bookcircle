@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pager, cover, empty with context %}
+{% block title %}Обмены{% endblock %}
+{% block content %}
+<h1>Обмены</h1>
+<div class="tabs">
+  <a href="/loans?direction=incoming&f={{ flt }}" {% if direction == 'incoming' %}class="active"{% endif %}>Входящие запросы</a>
+  <a href="/loans?direction=outgoing&f={{ flt }}" {% if direction == 'outgoing' %}class="active"{% endif %}>Мои запросы</a>
+</div>
+<div class="tabs sub">
+  <a href="/loans?direction={{ direction }}&f=active" {% if flt == 'active' %}class="active"{% endif %}>Активные</a>
+  <a href="/loans?direction={{ direction }}&f=done" {% if flt == 'done' %}class="active"{% endif %}>Завершённые</a>
+  <a href="/loans?direction={{ direction }}&f=all" {% if flt == 'all' %}class="active"{% endif %}>Все</a>
+</div>
+
+{% if pg.items %}
+<ul class="list">
+  {% for l in pg.items %}
+  <li class="card row">
+    {{ cover(l.cover_url, l.title, l.book_id, "small") }}
+    <div class="grow">
+      <strong><a href="/books/{{ l.book_id }}">{{ l.title }}</a></strong>
+      <span class="muted"> · {{ l.author }}</span>
+      <p class="muted">
+        {% if direction == 'incoming' %}Заёмщик: {{ l.other_name }}{% else %}Владелец: {{ l.other_name }} · {{ l.pickup_place }}{% endif %}
+        · вернуть до {{ l.requested_return_date|date_ru }}
+      </p>
+      <p>
+        <span class="tag {% if l.status in ('accepted', 'handed_over') %}ok{% elif l.status in ('rejected', 'cancelled') %}warn{% endif %}">{{ LOAN_STATUS[l.status] }}</span>
+        {% if l.overdue %}<span class="tag bad">Просрочено</span>{% endif %}
+        {% if l.handed_at %}<span class="muted small">выдана {{ l.handed_at|date_ru }}</span>{% endif %}
+        {% if l.returned_at %}<span class="muted small">возвращена {{ l.returned_at|date_ru }}</span>{% endif %}
+      </p>
+    </div>
+    <div class="actions">
+      {% if direction == 'incoming' %}
+        {% if l.status == 'pending' %}
+          <form method="post" action="/loans/{{ l.id }}/accept"><input type="hidden" name="direction" value="incoming"><button class="btn small primary" type="submit">Принять</button></form>
+          <form method="post" action="/loans/{{ l.id }}/reject"><input type="hidden" name="direction" value="incoming"><button class="btn small" type="submit">Отклонить</button></form>
+        {% elif l.status == 'accepted' %}
+          <form method="post" action="/loans/{{ l.id }}/hand-over"><input type="hidden" name="direction" value="incoming"><button class="btn small primary" type="submit">Отметить передачу</button></form>
+          <form method="post" action="/loans/{{ l.id }}/cancel" data-confirm="Отменить принятую заявку?"><input type="hidden" name="direction" value="incoming"><button class="btn small danger" type="submit">Отменить</button></form>
+        {% elif l.status == 'handed_over' %}
+          <form method="post" action="/loans/{{ l.id }}/return"><input type="hidden" name="direction" value="incoming"><button class="btn small primary" type="submit">Отметить возврат</button></form>
+        {% endif %}
+      {% else %}
+        {% if l.status in ('pending', 'accepted') %}
+          <form method="post" action="/loans/{{ l.id }}/cancel" data-confirm="Отменить заявку?"><input type="hidden" name="direction" value="outgoing"><button class="btn small danger" type="submit">Отменить</button></form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{{ pager(pg) }}
+{% else %}
+{% if direction == 'incoming' %}
+{{ empty("Запросов нет", "Когда кто-то запросит вашу книгу, заявка появится здесь.") }}
+{% else %}
+{{ empty("Вы пока ничего не запрашивали", "Найдите книгу в каталоге и нажмите «Запросить».") }}
+{% endif %}
+{% endif %}
+{% endblock %}

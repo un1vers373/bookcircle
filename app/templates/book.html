@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pager, cover, rating, empty, select, textarea with context %}
+{% block title %}{{ book.title }}{% endblock %}
+{% block content %}
+<p><a href="/books">← Каталог</a></p>
+
+<section class="book-head card">
+  {{ cover(book.cover_url, book.title, book.id, "large") }}
+  <div>
+    <h1>{{ book.title }}</h1>
+    <p class="muted">{{ book.author }} · {{ book.genre }}</p>
+    <p>{{ rating(book.avg_rating, book.reviews_count) }}</p>
+    <p><span class="tag">Прочитали в этом месяце: {{ book.read_month }}</span></p>
+    {% if book.description %}<p>{{ book.description }}</p>{% endif %}
+  </div>
+</section>
+
+<section>
+  <h2>Экземпляры</h2>
+  {% if copies %}
+  <ul class="list">
+    {% for c in copies %}
+    <li class="card row">
+      <div class="grow">
+        <strong>{{ c.owner_name }}</strong>
+        <span class="muted"> · {{ CONDITIONS[c.condition] }} · {{ c.pickup_place }}</span>
+        <p>
+          {% if c.is_free %}<span class="tag ok">Доступен</span>{% else %}<span class="tag warn">Занят</span>{% endif %}
+          {% if c.my_loan_status %}<span class="tag">Ваша заявка: {{ LOAN_STATUS[c.my_loan_status] }}</span>{% endif %}
+        </p>
+      </div>
+      {% if c.owner_id == user.id %}
+        <span class="muted">Это ваш экземпляр</span>
+      {% elif c.is_free and not c.my_loan_status %}
+      <form method="post" action="/copies/{{ c.id }}/loans" class="inline-form" novalidate>
+        {% set err = loan_error if loan_error and loan_error.copy_id == c.id else None %}
+        <div class="field{% if err %} has-error{% endif %}">
+          <label for="d-{{ c.id }}">Вернуть до</label>
+          <input id="d-{{ c.id }}" name="requested_return_date" type="date" required
+                 value="{{ err.value if err else '' }}" {% if err %}aria-invalid="true"{% endif %}>
+          {% if err %}<p class="error">{{ err.message }}</p>{% endif %}
+        </div>
+        <button class="btn primary" type="submit">Запросить</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  {{ empty("Пока нет экземпляров", "Станьте первым — добавьте свой на полку.") }}
+  {% endif %}
+  <p><a class="btn" href="/shelf?book_id={{ book.id }}">Добавить мой экземпляр</a></p>
+</section>
+
+<section class="two-col">
+  <form method="post" action="/reading/{{ book.id }}" class="card form">
+    <h2>Моё чтение</h2>
+    <input type="hidden" name="next" value="/books/{{ book.id }}">
+    {{ select("status", "Статус", READING_STATUS.items()|list, my_reading.status if my_reading else "", {}, "Выберите статус") }}
+    <div class="field">
+      <label for="f-finished_at">Дата завершения</label>
+      <input id="f-finished_at" name="finished_at" type="date" value="{{ my_reading.finished_at if my_reading and my_reading.finished_at else '' }}">
+      <small class="hint">Только для статуса «Прочитал». Если пусто — сегодня.</small>
+    </div>
+    <button class="btn" type="submit">Сохранить</button>
+  </form>
+
+  <form method="post" action="/books/{{ book.id }}/review" class="card form" novalidate>
+    <h2>{% if my_review %}Мой отзыв{% else %}Написать отзыв{% endif %}</h2>
+    {% if my_review and my_review.is_hidden %}<p class="flash warn">Ваш отзыв скрыт модератором и не учитывается в рейтинге.</p>{% endif %}
+    {% set vals = review_values if review_values else (my_review or {}) %}
+    {{ select("score", "Оценка", [(5, "5 — отлично"), (4, "4 — хорошо"), (3, "3 — нормально"), (2, "2 — слабо"), (1, "1 — плохо")], vals.get("score"), review_errors, "Выберите оценку") }}
+    {{ textarea("text", "Отзыв", vals, review_errors, 5) }}
+    <button class="btn primary" type="submit">{% if my_review %}Обновить отзыв{% else %}Опубликовать{% endif %}</button>
+  </form>
+</section>
+
+<section>
+  <h2>Отзывы</h2>
+  {% if pg.items %}
+  <ul class="list">
+    {% for r in pg.items %}
+    <li class="card">
+      <p><strong>{{ r.author_name }}</strong> <span class="rating">★ {{ r.score }}</span>
+         <span class="muted">· {{ r.updated_at|date_ru }}</span></p>
+      <p>{{ r.text }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {{ pager(pg) }}
+  {% else %}
+  {{ empty("Отзывов пока нет", "Поделитесь впечатлениями первым.") }}
+  {% endif %}
+</section>
+{% endblock %}

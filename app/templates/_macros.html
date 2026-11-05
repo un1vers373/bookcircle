@@ -1,0 +1,60 @@
+{% macro field(name, label, values, errors, type="text", required=false, hint="") %}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="f-{{ name }}">{{ label }}</label>
+  <input id="f-{{ name }}" name="{{ name }}" type="{{ type }}"
+         {% if type != "password" %}value="{{ values.get(name) or '' }}"{% endif %}
+         {% if required %}required{% endif %}
+         {% if errors.get(name) %}aria-invalid="true" aria-describedby="e-{{ name }}"{% endif %}>
+  {% if hint %}<small class="hint">{{ hint }}</small>{% endif %}
+  {% if errors.get(name) %}<p class="error" id="e-{{ name }}">{{ errors[name] }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro textarea(name, label, values, errors, rows=4) %}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="f-{{ name }}">{{ label }}</label>
+  <textarea id="f-{{ name }}" name="{{ name }}" rows="{{ rows }}"
+            {% if errors.get(name) %}aria-invalid="true" aria-describedby="e-{{ name }}"{% endif %}>{{ values.get(name) or '' }}</textarea>
+  {% if errors.get(name) %}<p class="error" id="e-{{ name }}">{{ errors[name] }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro select(name, label, options, selected, errors, placeholder="") %}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="f-{{ name }}">{{ label }}</label>
+  <select id="f-{{ name }}" name="{{ name }}" {% if errors.get(name) %}aria-invalid="true" aria-describedby="e-{{ name }}"{% endif %}>
+    {% if placeholder %}<option value="">{{ placeholder }}</option>{% endif %}
+    {% for value, text in options %}
+    <option value="{{ value }}" {% if selected|string == value|string %}selected{% endif %}>{{ text }}</option>
+    {% endfor %}
+  </select>
+  {% if errors.get(name) %}<p class="error" id="e-{{ name }}">{{ errors[name] }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro pager(pg) %}
+{% if pg.pages > 1 %}
+<nav class="pager" aria-label="Страницы">
+  {% if pg.page > 1 %}<a class="btn small" href="{{ page_url(pg.page - 1) }}">← Назад</a>{% else %}<span></span>{% endif %}
+  <span class="muted">Страница {{ pg.page }} из {{ pg.pages }}</span>
+  {% if pg.page < pg.pages %}<a class="btn small" href="{{ page_url(pg.page + 1) }}">Далее →</a>{% else %}<span></span>{% endif %}
+</nav>
+{% endif %}
+{% endmacro %}
+
+{% macro cover(url, title, key, cls="") %}
+{% if url %}
+<img class="cover {{ cls }}" src="{{ url }}" alt="Обложка: {{ title }}" loading="lazy">
+{% else %}
+<div class="cover ph {{ cls }}" style="--h: {{ (key * 47) % 360 }}" aria-hidden="true"><span>{{ title[:1] }}</span></div>
+{% endif %}
+{% endmacro %}
+
+{% macro rating(avg, count) %}
+{% if avg %}<span class="rating" title="Средняя оценка без скрытых отзывов">★ {{ '%.1f'|format(avg) }}</span>
+<span class="muted">({{ count }})</span>{% else %}<span class="muted">Оценок пока нет</span>{% endif %}
+{% endmacro %}
+
+{% macro empty(title, text="") %}
+<div class="empty"><p><strong>{{ title }}</strong></p>{% if text %}<p class="muted">{{ text }}</p>{% endif %}</div>
+{% endmacro %}

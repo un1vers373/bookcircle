@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea, pager, empty with context %}
+{% block title %}Модерация: книги{% endblock %}
+{% block content %}
+<h1>Модерация</h1>
+{% include "_mod_tabs.html" %}
+
+<form method="post" action="/moderation/books" class="card form" novalidate>
+  <h2>Добавить книгу</h2>
+  {{ field("title", "Название", values, errors, "text", true) }}
+  {{ field("author", "Автор", values, errors, "text", true) }}
+  {{ field("genre", "Жанр", values, errors, "text", true) }}
+  {{ field("cover_url", "Ссылка на обложку", values, errors, "text", false, "Необязательно. Адрес картинки, на использование которой есть разрешение.") }}
+  {{ textarea("description", "Описание", values, errors, 4) }}
+  <button class="btn primary" type="submit">Добавить</button>
+</form>
+
+<form method="get" action="/moderation/books" class="filters card">
+  <div class="field grow"><label for="q">Поиск</label><input id="q" name="q" type="search" value="{{ q }}"></div>
+  <button class="btn" type="submit">Найти</button>
+</form>
+
+{% if pg.items %}
+<ul class="list">
+  {% for b in pg.items %}
+  <li class="card row">
+    <div class="grow">
+      <strong><a href="/books/{{ b.id }}">{{ b.title }}</a></strong>
+      <span class="muted"> · {{ b.author }} · {{ b.genre }}</span>
+      <p class="muted small">Экземпляров: {{ b.copies_count }} · отзывов: {{ b.reviews_count }}</p>
+    </div>
+    <a class="btn small" href="/moderation/books/{{ b.id }}/edit">Изменить</a>
+  </li>
+  {% endfor %}
+</ul>
+{{ pager(pg) }}
+{% else %}
+{{ empty("Книг не найдено") }}
+{% endif %}
+{% endblock %}

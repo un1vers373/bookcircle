@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea with context %}
+{% block title %}Изменить книгу{% endblock %}
+{% block content %}
+<section class="narrow">
+  <p><a href="/moderation/books">← Справочник книг</a></p>
+  <h1>Изменить книгу</h1>
+  <form method="post" action="/moderation/books/{{ book.id }}" class="card form" novalidate>
+    {{ field("title", "Название", values, errors, "text", true) }}
+    {{ field("author", "Автор", values, errors, "text", true) }}
+    {{ field("genre", "Жанр", values, errors, "text", true) }}
+    {{ field("cover_url", "Ссылка на обложку", values, errors, "text") }}
+    {{ textarea("description", "Описание", values, errors, 5) }}
+    <button class="btn primary" type="submit">Сохранить</button>
+  </form>
+</section>
+{% endblock %}
